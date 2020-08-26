@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: ali-ecs-tag-update  
+  name: ali-ecs-tag-update
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ali-ecs-tag-update  
+  template:
+    metadata:
+      annotations:
+        ram.aliyuncs.com/role: KubernetesTagRole
+      labels:
+        app.kubernetes.io/name: ali-ecs-tag-update  
+    spec:
+      containers:
+      - name: ali-ecs-tag-update
+        image: allanhung/ali-ecs-tag-update:0.1.6
+        imagePullPolicy: Always
+        args:
+        - --cron=40 * * * * *

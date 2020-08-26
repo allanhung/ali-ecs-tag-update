@@ -1,0 +1,25 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app: prometheus-operator
+    release: po
+  name: ali-ecs-tag-update 
+spec:
+  groups:
+  - name: ./notag.rules
+    rules:
+    - alert: WatchdogNoTagAlert
+      expr: absent(notagwatchdog) == 1
+      for: 1m
+      labels:
+        severity: "warning"
+      annotations:
+        message: "Tag checking program is not running."
+    - alert: NoTagAlert
+      expr: (sum(notag == 1) by (vpc)) >= 1
+      for: 10m
+      labels:
+        severity: "warning"
+      annotations:
+        message: "No Tag Found: {{ .Value }} instance(s) in {{ .Labels.vpc }} vpc."

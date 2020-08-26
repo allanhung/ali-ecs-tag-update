@@ -1,0 +1,9 @@
+apiVersion: helm/v1
+kind: HelmTransformer
+metadata:
+  name: ali-ecs-tag-update
+ChartName: ali-ecs-tag-update
+ChartVersion: 0.1.0
+appVersion: 0.1.0
+Values:
+  Env: dev

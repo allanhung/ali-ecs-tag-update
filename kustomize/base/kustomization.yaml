@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: monitoring
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+resources:
+- ali-ecs-tag-update-deployment.yaml
+- ali-ecs-tag-update-service.yaml
+- ali-ecs-tag-update-alertrules.yaml
+- ns.yaml
