@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: '{{ .Release.Name }}'
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: ali-ecs-tag-update
+    app.kubernetes.io/version: 0.1.0
+    helm.sh/chart: ali-ecs-tag-update-0.1.0
+  name: '{{ .Release.Name }}-ali-ecs-tag-update'
+  namespace: '{{ .Release.Namespace }}'
+spec:
+  ports:
+  - name: service
+    port: 80
+    protocol: TCP
+    targetPort: 8085
+  selector:
+    app.kubernetes.io/name: ali-ecs-tag-update
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/instance: '{{ .Release.Name }}'
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: ali-ecs-tag-update
+    app.kubernetes.io/version: 0.1.0
+    helm.sh/chart: ali-ecs-tag-update-0.1.0
+  name: '{{ .Release.Name }}-ali-ecs-tag-update'
+  namespace: '{{ .Release.Namespace }}'
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ali-ecs-tag-update
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        ram.aliyuncs.com/role: KubernetesTagRole
+      labels:
+        app.kubernetes.io/name: ali-ecs-tag-update
+    spec:
+      containers:
+      - args:
+        - --cron=40 * * * * *
+        image: allanhung/ali-ecs-tag-update:0.1.6
+        imagePullPolicy: Always
+        name: ali-ecs-tag-update
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    app: prometheus-operator
+    app.kubernetes.io/instance: '{{ .Release.Name }}'
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: ali-ecs-tag-update
+    app.kubernetes.io/version: 0.1.0
+    helm.sh/chart: ali-ecs-tag-update-0.1.0
+    release: po
+  name: '{{ .Release.Name }}-ali-ecs-tag-update'
+  namespace: '{{ .Release.Namespace }}'
+spec:
+  groups:
+  - name: ./notag.rules
+    rules:
+    - alert: WatchdogNoTagAlert
+      annotations:
+        message: Tag checking program is not running.
+      expr: absent(notagwatchdog) == 1
+      for: 1m
+      labels:
+        severity: warning
+    - alert: NoTagAlert
+      annotations:
+        message: 'No Tag Found: {{ .Value }} instance(s) in {{ .Labels.vpc }} vpc.'
+      expr: (sum(notag == 1) by (vpc)) >= 1
+      for: 10m
+      labels:
+        severity: warning
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/instance: '{{ .Release.Name }}'
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: ali-ecs-tag-update
+    app.kubernetes.io/version: 0.1.0
+    helm.sh/chart: ali-ecs-tag-update-0.1.0
+    release: po
+  name: '{{ .Release.Name }}-ali-ecs-tag-update'
+  namespace: '{{ .Release.Namespace }}'
+spec:
+  endpoints:
+  - path: /metrics
+    port: service
+  namespaceSelector:
+    matchNames:
+    - monitoring
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ali-ecs-tag-update

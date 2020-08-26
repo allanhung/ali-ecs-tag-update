@@ -1,0 +1,5 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: ali-ecs-tag-update Helm chart for Kubernetes
+name: ali-ecs-tag-update
+version: 0.1.0
